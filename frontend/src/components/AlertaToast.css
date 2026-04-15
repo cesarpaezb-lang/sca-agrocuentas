@@ -1,0 +1,36 @@
+.alerta-toast {
+  background: white;
+  border-radius: 8px;
+  padding: 16px;
+  margin: 10px 0;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+  animation: slideIn 0.3s ease-out;
+  max-width: 350px;
+}
+.alerta-header {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 8px;
+}
+.alerta-header h4 {
+  margin: 0;
+  flex: 1;
+  color: #2c3e50;
+}
+button {
+  background: none;
+  border: none;
+  font-size: 20px;
+  cursor: pointer;
+}
+.contenedor-alertas {
+  position: fixed;
+  top: 80px;
+  right: 20px;
+  z-index: 9999;
+}
+@keyframes slideIn {
+  from { transform: translateX(100%); opacity: 0; }
+  to { transform: translateX(0); opacity: 1; }
+}

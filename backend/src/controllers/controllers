@@ -1,0 +1,115 @@
+// src/controllers/transaccionController.js
+const Transaccion = require('../models/Transaccion');
+const Proyecto = require('../models/Proyecto');
+const AlertaService = require('../services/alertaService');
+
+// Función auxiliar para calcular totales del proyecto
+async function calcularTotalesProyecto(proyectoId) {
+  const resultado = await Transaccion.aggregate([
+    { $match: { proyecto: proyectoId } },
+    { 
+      $group: {
+        _id: '$tipo',
+        total: { $sum: '$total' }
+      }
+    }
+  ]);
+
+  const totales = {
+    costo: 0,
+    gasto: 0,
+    venta: 0
+  };
+
+  resultado.forEach(item => {
+    totales[item._id] = item.total;
+  });
+
+  return {
+    costos: totales.costo,
+    gastos: totales.gasto,
+    ventas: totales.venta,
+    balance: totales.venta - (totales.costo + totales.gasto)
+  };
+}
+
+exports.crearTransaccion = async (req, res) => {
+  try {
+    const { proyectoId, tipo, descripcion, cantidad, valorUnitario } = req.body;
+    const usuarioId = req.user.id;
+    const io = req.io; // Esto lo pasaremos desde app.js
+
+    // 1. Crear la transacción
+    const transaccion = new Transaccion({
+      proyecto: proyectoId,
+      tipo,
+      descripcion,
+      cantidad: Number(cantidad),
+      valorUnitario: Number(valorUnitario),
+      total: Number(cantidad) * Number(valorUnitario)
+    });
+
+    await transaccion.save();
+
+    // 2. Calcular totales actualizados
+    const totales = await calcularTotalesProyecto(proyectoId);
+
+    // 3. DISPARAR ALERTAS SOLO SI ES NECESARIO
+    // Solo verificamos alertas cuando se registra una venta o cuando hay pérdida
+    let alertaGenerada = null;
+    
+    if (io) {
+      const alertaService = AlertaService(io);
+      
+      // Verificar si hay pérdida (costos + gastos > ventas)
+      if (totales.costos + totales.gastos > totales.ventas && totales.ventas > 0) {
+        alertaGenerada = await alertaService.verificarYNotificar(proyectoId, {
+          costos: totales.costos,
+          gastos: totales.gastos,
+          ventas: totales.ventas,
+          usuarioId: usuarioId
+        });
+      }
+    }
+
+    // 4. Responder
+    res.status(201).json({
+      success: true,
+      message: `${tipo.toUpperCase()} registrado correctamente`,
+      data: transaccion,
+      totales: totales,
+      alerta: alertaGenerada
+    });
+
+  } catch (error) {
+    console.error('Error en crearTransaccion:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Error al registrar transacción',
+      error: error.message
+    });
+  }
+};
+
+// Listar transacciones por proyecto
+exports.listarPorProyecto = async (req, res) => {
+  try {
+    const { proyectoId } = req.params;
+    
+    const transacciones = await Transaccion.find({ proyecto: proyectoId })
+      .sort({ fecha: -1 });
+
+    const totales = await calcularTotalesProyecto(proyectoId);
+
+    res.json({
+      success: true,
+      data: transacciones,
+      totales: totales
+    });
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      message: 'Error al obtener transacciones'
+    });
+  }
+};
