@@ -14,13 +14,9 @@ function Dashboard({ usuario, onLogout }) {
     modalidad: ''
   });
   const navigate = useNavigate();
-
   const token = localStorage.getItem('token');
 
-  useEffect(() => {
-    cargarProyectos();
-  }, []);
-
+  // Función para cargar proyectos (usando api)
   const cargarProyectos = async () => {
     try {
       setCargando(true);
@@ -34,6 +30,12 @@ function Dashboard({ usuario, onLogout }) {
       setCargando(false);
     }
   };
+
+  useEffect(() => {
+    if (token) {
+      cargarProyectos();
+    }
+  }, [token]); // Dependencia correcta
 
   const manejarCrearProyecto = async (e) => {
     e.preventDefault();
