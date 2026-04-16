@@ -1,5 +1,5 @@
 // frontend/public/service-worker.js
-const CACHE_NAME = 'sca-agrocuentas-v1';
+const CACHE_NAME = 'sca-agrocuentas-v2';
 const urlsToCache = [
   '/',
   '/index.html',
