@@ -57,7 +57,7 @@ function Proyecto() {
     e.preventDefault();
     try {
       if (editandoTransaccion) {
-        // Editar existente
+        // Editar existente - no enviamos el tipo, solo los datos que cambian
         await api.put(`/transacciones/${editandoTransaccion._id}`, {
           descripcion: formulario.descripcion,
           cantidad: parseFloat(formulario.cantidad),
@@ -66,10 +66,10 @@ function Proyecto() {
           headers: { Authorization: `Bearer ${token}` }
         });
       } else {
-        // Crear nueva
+        // Crear nueva - aquí sí necesitamos el tipo singular (costo, gasto, venta)
         await api.post('/transacciones', {
           proyecto: id,
-          tipo: formulario.tipo,
+          tipo: formulario.tipo, // Esto ya viene del onChange como singular
           descripcion: formulario.descripcion,
           cantidad: parseFloat(formulario.cantidad),
           valorUnitario: parseFloat(formulario.valorUnitario)
@@ -95,7 +95,7 @@ function Proyecto() {
   const iniciarEdicion = (transaccion) => {
     setEditandoTransaccion(transaccion);
     setFormulario({
-      tipo: transaccion.tipo,
+      tipo: transaccion.tipo, // Mantenemos el tipo original (singular)
       descripcion: transaccion.descripcion,
       cantidad: transaccion.cantidad.toString(),
       valorUnitario: transaccion.valorUnitario.toString()
@@ -177,7 +177,11 @@ function Proyecto() {
     return <div className="alert alert-danger m-5">Proyecto no encontrado</div>;
   }
 
-  const transaccionesActuales = transacciones.filter(t => t.tipo === pestañaActiva);
+  // FILTRO CORREGIDO: Compara 'costos' (pestaña) con 'costo' (base de datos)
+  const transaccionesActuales = transacciones.filter(t => {
+    const tipoNormalizado = pestañaActiva.endsWith('s') ? pestañaActiva.slice(0, -1) : pestañaActiva;
+    return t.tipo === tipoNormalizado;
+  });
 
   return (
     <div className="proyecto-container">
@@ -513,7 +517,11 @@ function Proyecto() {
                         className="form-control"
                         placeholder="Ej: Semilla de papa"
                         value={formulario.descripcion}
-                        onChange={(e) => setFormulario({...formulario, descripcion: e.target.value, tipo: pestañaActiva.slice(0, -1)})}
+                        onChange={(e) => setFormulario({
+                          ...formulario, 
+                          descripcion: e.target.value, 
+                          tipo: pestañaActiva.slice(0, -1) // CORRECCIÓN: Guarda 'costo' en vez de 'costos'
+                        })}
                         required
                       />
                     </div>
