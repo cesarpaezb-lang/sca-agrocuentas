@@ -64,5 +64,11 @@ function Dashboard({ usuario, onLogout }) {
     }
   };
 
-  // El resto del JSX igual...
+  return ( // Aquí va todo tu JSX (el mismo que tenías, sin cambios)
+    <div className="dashboard-container">
+      {/* ... todo el JSX ... */}
+    </div>
+  );
 }
+
+export default Dashboard;
