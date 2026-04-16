@@ -1,7 +1,7 @@
 import React, { useEffect, useState, useCallback } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import api from '../services/api';
-import { Edit2, Trash2, AlertCircle, ArrowLeft, FileText, CheckCircle, Trash, DollarSign, ShoppingCart, TrendingUp } from 'lucide-react';
+import { Edit2, Trash2, AlertCircle, ArrowLeft, FileText, CheckCircle, Trash, DollarSign, ShoppingCart, TrendingUp, Plus } from 'lucide-react';
 import './Proyecto.css';
 
 function Proyecto() {
